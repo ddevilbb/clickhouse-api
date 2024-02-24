@@ -1,0 +1,210 @@
+basePath: /api/v1
+consumes:
+    - application/json
+definitions:
+    TestData:
+        properties:
+            created_at:
+                description: |-
+                    CreatedAt of TestData
+                    in: time.Time
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            data:
+                description: |-
+                    Data of TestData
+                    in: string
+                type: string
+                x-go-name: Data
+            id:
+                description: |-
+                    Id of TestData
+                    in: string
+                type: string
+                x-go-name: Id
+            sign:
+                description: |-
+                    Sign of TestData
+                    in: int8
+                format: int8
+                type: integer
+                x-go-name: Sign
+            version:
+                description: |-
+                    Version of TestData
+                    in: int32
+                format: uint32
+                type: integer
+                x-go-name: Version
+        type: object
+        x-go-package: clickhouse-api/internal/model
+    TestDataRequestParams:
+        properties:
+            data:
+                description: |-
+                    Data of product
+                    in: string
+                type: string
+                x-go-name: Data
+        type: object
+        x-go-package: clickhouse-api/internal/controller/api/test_data
+info:
+    title: 'Clickhouse API:'
+    version: "1.0"
+paths:
+    /test_data:
+        get:
+            description: Get list of TestData
+            operationId: GetTestDataList
+            responses:
+                "200":
+                    $ref: '#/responses/GetListResponse'
+                "404":
+                    $ref: '#/responses/Response'
+                "500":
+                    $ref: '#/responses/Response'
+            tags:
+                - TestData
+        post:
+            description: Create TestData
+            operationId: CreateTestDataRequest
+            parameters:
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/TestDataRequestParams'
+                  x-go-name: Body
+            responses:
+                "201":
+                    $ref: '#/responses/Response'
+                "400":
+                    $ref: '#/responses/Response'
+                "500":
+                    $ref: '#/responses/Response'
+            tags:
+                - TestData
+    /test_data/{id}:
+        delete:
+            description: Delete TestData by Id
+            operationId: DeleteTestData
+            responses:
+                "204":
+                    description: ""
+                "404":
+                    $ref: '#/responses/Response'
+                "500":
+                    $ref: '#/responses/Response'
+            tags:
+                - TestData
+        get:
+            description: Get TestData by id
+            operationId: GetTestDataById
+            parameters:
+                - format: string
+                  in: query
+                  name: id
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/GetItemResponse'
+                "404":
+                    $ref: '#/responses/Response'
+                "500":
+                    $ref: '#/responses/Response'
+            tags:
+                - TestData
+        put:
+            description: Create TestData
+            operationId: UpdateTestDataRequest
+            parameters:
+                - description: id of TestData
+                  in: query
+                  name: id
+                  type: string
+                  x-go-name: Id
+                - in: body
+                  name: body
+                  schema:
+                    $ref: '#/definitions/TestDataRequestParams'
+                  x-go-name: Body
+            responses:
+                "201":
+                    $ref: '#/responses/Response'
+                "400":
+                    $ref: '#/responses/Response'
+                "500":
+                    $ref: '#/responses/Response'
+            tags:
+                - TestData
+produces:
+    - application/json
+responses:
+    GetItemResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/TestData'
+    GetListResponse:
+        description: ""
+        schema:
+            properties:
+                data:
+                    items:
+                        $ref: '#/definitions/TestData'
+                    type: array
+                    x-go-name: Data
+                message:
+                    type: string
+                    x-go-name: Message
+                pagination:
+                    properties:
+                        limit:
+                            format: int64
+                            type: integer
+                            x-go-name: Limit
+                        offset:
+                            format: int64
+                            type: integer
+                            x-go-name: Offset
+                        page:
+                            format: int64
+                            type: integer
+                            x-go-name: Page
+                        pages:
+                            format: int64
+                            type: integer
+                            x-go-name: Pages
+                        total:
+                            format: int64
+                            type: integer
+                            x-go-name: Total
+                    type: object
+                    x-go-name: Pagination
+                status:
+                    type: boolean
+                    x-go-name: Status
+            type: object
+    Response:
+        description: ""
+        schema:
+            properties:
+                message:
+                    description: |-
+                        Message of the error
+                        in: string
+                    type: string
+                    x-go-name: Message
+                status:
+                    description: |-
+                        Status of the error
+                        in: bool
+                    type: boolean
+                    x-go-name: Status
+            type: object
+schemes:
+    - http
+securityDefinitions:
+    basicAuth:
+        type: basic
+swagger: "2.0"
