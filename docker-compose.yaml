@@ -1,0 +1,80 @@
+version: "3.7"
+
+services:
+  zoo1:
+    image: zookeeper:latest
+    container_name: clickhouse-api-zoo
+    hostname: zoo1
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_STANDALONE_ENABLED: 'false'
+      ZOO_SERVERS: server.1=zoo1:2888:3888;2181
+      ZOO_CFG_EXTRA: 'reconfigEnabled=true skipACL=yes'
+
+  clickhouse1:
+    image: clickhouse/clickhouse-server:23.12.4.15-alpine
+    container_name: clickhouse-api-db1
+    hostname: clickhouse1
+    volumes:
+      - ./.ops/docker/clickhouse/local/config/alone/include.xml:/etc/clickhouse-server/include.xml
+      - ./.ops/docker/clickhouse/local/config/config.xml:/etc/clickhouse-server/config.xml
+      - ./.ops/docker/clickhouse/local/config/users.xml:/etc/clickhouse-server/users.xml
+      - ./.ops/docker/clickhouse/local/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: secret
+      CLICKHOUSE_HOST: clickhouse1
+    restart: always
+    depends_on:
+      - zoo1
+    ports:
+      - "18123:8123"
+    networks:
+      - default
+
+  api:
+    container_name: clickhouse-api
+    build:
+      context: .
+      dockerfile: .ops/docker/api/local/Dockerfile
+    volumes:
+      - ./goapi:/go/src/app
+      - ./.ops/docker/api/local/sqlite:/sqlite
+    security_opt:
+      - "seccomp:unconfined"
+    cap_add:
+      - SYS_PTRACE
+    depends_on:
+      - clickhouse1
+    ports:
+      - "8084:8080"
+      - "8021:8021"
+      - "2345:2345"
+    environment:
+      CLICKHOUSE_URL: 'tcp://clickhouse1:9000?username=user1&password=123456&database=default&connection_open_strategy=in_order'
+    networks:
+      - default
+
+  elk:
+    container_name: elk
+    image: sebp/elk:683
+    ports:
+      - "5601:5601"
+      - "9200:9200"
+      - "5044:5044"
+      - "5044:5044/udp"
+    volumes:
+      - .ops/docker/elk/logstash/conf.d:/etc/logstash/conf.d
+
+networks:
+  default:
+    name: clickhouse-api
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.222.0/28
